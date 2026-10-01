@@ -36,16 +36,16 @@ function failure(input: unknown): GenerateError {
 }
 
 describe("снапшоты", () => {
-  // Оба .d.ts дополнительно проверяет tsc без skipLibCheck (tsconfig.schema.json).
-  test("текущий контракт: закоммиченный schema.d.ts совпадает с выводом генератора", async () => {
+  // Оба файла — обычные .ts, поэтому их проверяет tsc (skipLibCheck на них не действует).
+  test("текущий контракт: закоммиченный schema.ts совпадает с выводом генератора", async () => {
     const output = generate(await readJson("spec/openapi.json"));
-    expect(output).toBe(await Bun.file("src/api/schema.d.ts").text());
+    expect(output).toBe(await Bun.file("src/api/schema.ts").text());
     expect(output).toContain('"/notebooks/{id}"');
   });
 
   test("синтетическая спека со всеми конструкциями совпадает со снапшотом", async () => {
     const output = generate(await readJson("tests/fixtures/full.json"));
-    expect(output).toBe(await Bun.file("tests/fixtures/full.d.ts").text());
+    expect(output).toBe(await Bun.file("tests/fixtures/full.ts").text());
   });
 
   test("вывод детерминирован и начинается с пометки «не править руками»", async () => {
@@ -228,9 +228,9 @@ describe("ошибки с JSON pointer", () => {
 });
 
 test("CLI: аргументы <вход> -o <выход> в любом порядке, иначе подсказка", () => {
-  expect(parseArgs(["in.json", "-o", "out.d.ts"])).toEqual({ input: "in.json", output: "out.d.ts" });
-  expect(parseArgs(["-o", "out.d.ts", "in.json"])).toEqual({ input: "in.json", output: "out.d.ts" });
-  for (const bad of [[], ["in.json"], ["in.json", "-o"], ["a.json", "b.json", "-o", "out.d.ts"]]) {
+  expect(parseArgs(["in.json", "-o", "out.ts"])).toEqual({ input: "in.json", output: "out.ts" });
+  expect(parseArgs(["-o", "out.ts", "in.json"])).toEqual({ input: "in.json", output: "out.ts" });
+  for (const bad of [[], ["in.json"], ["in.json", "-o"], ["a.json", "b.json", "-o", "out.ts"]]) {
     expect(() => parseArgs(bad)).toThrow(/использование/);
   }
 });

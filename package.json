@@ -34,10 +34,10 @@
   },
   "scripts": {
     "apidog": "bun scripts/apidog.ts",
-    "generate": "bun src/bin.ts spec/openapi.json -o src/api/schema.d.ts",
+    "generate": "bun src/bin.ts spec/openapi.json -o src/api/schema.ts",
     "sync": "bun run apidog && bun run generate",
     "demo": "bun src/demo.ts",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.schema.json",
+    "typecheck": "tsc --noEmit",
     "test": "bun test",
     "build": "tsdown",
     "prepublishOnly": "bun run typecheck && bun test && bun run build",

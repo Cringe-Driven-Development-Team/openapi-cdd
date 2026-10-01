@@ -1,10 +1,10 @@
-// CLI генератора: <пакет> <спека.json> -o <выход.d.ts>
+// CLI генератора: <пакет> <спека.json> -o <выход.ts>
 // Про Apidog не знает: читает файл и пишет файл. Работает в node и bun.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { generate } from "./generator";
 
-export const USAGE = "использование: openapi-cdd <спека.json> -o <выход.d.ts>";
+export const USAGE = "использование: openapi-cdd <спека.json> -o <выход.ts>";
 
 export function parseArgs(argv: string[]): { input: string; output: string } {
   const flag = argv.indexOf("-o");
