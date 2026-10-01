@@ -1,21 +1,53 @@
 {
-  "name": "openapi-playground",
-  "private": true,
+  "name": "@maninthecoat/openapi",
+  "version": "0.1.0",
+  "description": "Генератор типов из OpenAPI 3.1 и типизированный fetch-клиент без рантайм-зависимостей",
+  "license": "MIT",
+  "repository": "https://github.com/Cringe-Driven-Development-Team/openapi-cdd",
+  "keywords": ["openapi", "fetch", "typescript", "codegen"],
   "type": "module",
-  "exports": "./src/index.ts",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./generator": {
+      "types": "./dist/generator.d.ts",
+      "import": "./dist/generator.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "openapi-cdd": "./dist/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
   "engines": {
-    "bun": ">=1.4.0"
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "apidog": "bun scripts/apidog.ts",
-    "generate": "bun scripts/generate.ts spec/openapi.json -o src/api/schema.d.ts",
+    "generate": "bun src/bin.ts spec/openapi.json -o src/api/schema.d.ts",
     "sync": "bun run apidog && bun run generate",
     "demo": "bun src/demo.ts",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.schema.json",
-    "test": "bun test"
+    "test": "bun test",
+    "build": "tsdown",
+    "prepublishOnly": "bun run typecheck && bun test && bun run build",
+    "release:patch": "bun pm version patch --no-git-tag-version && bun publish",
+    "release:minor": "bun pm version minor --no-git-tag-version && bun publish",
+    "release:major": "bun pm version major --no-git-tag-version && bun publish"
   },
   "devDependencies": {
     "@types/bun": "1.4.2",
-    "typescript": "5.9.3"
+    "tsdown": "0.23.0",
+    "typescript": "7.0.2"
   }
 }

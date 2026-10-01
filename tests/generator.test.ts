@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseArgs } from "../scripts/generate";
+import { parseArgs } from "../src/cli";
 import { GenerateError, generate } from "../src/generator";
 
 async function readJson(path: string): Promise<unknown> {
