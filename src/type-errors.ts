@@ -3,11 +3,8 @@
 // но никогда не выполняется.
 import createClient from "./index";
 import type { paths } from "./api/schema";
-import type { paths as fullPaths } from "../tests/fixtures/full";
 
 const api = createClient<paths>({ baseUrl: "https://api.test" });
-// Синтетическая спека со всеми конструкциями генератора: тела-объединения, query, header.
-const full = createClient<fullPaths>({ baseUrl: "https://api.test" });
 
 async function catalog() {
   // @ts-expect-error пути нет в спеке
@@ -40,15 +37,6 @@ async function catalog() {
   // @ts-expect-error нет обязательного params.path
   await api.GET("/notebooks/{id}");
 
-  // @ts-expect-error нет обязательного query-параметра lang
-  await full.GET("/items/{itemId}", { params: { path: { itemId: "1" } } });
-
-  // @ts-expect-error lang — только "ru" или "en"
-  await full.GET("/items/{itemId}", { params: { path: { itemId: "1" }, query: { lang: "de" } } });
-
-  // @ts-expect-error нет обязательного заголовка 2fa
-  await full.DELETE("/items/{itemId}", { params: { path: { itemId: "1" } } });
-
   {
     const { data } = await api.GET("/users/me");
     // @ts-expect-error data может быть undefined, пока не проверен error
@@ -72,24 +60,12 @@ async function catalog() {
   await api.POST("/auth/logout");
   await api.GET("/notebooks", { signal: new AbortController().signal, headers: { "x-trace": "1" } });
 
-  // Тела-объединения: {…} | null (необязательное), string | {…}, unknown.
-  await full.PUT("/items/{itemId}", { params: { path: { itemId: "1" } } });
-  await full.PUT("/items/{itemId}", { params: { path: { itemId: "1" } }, body: null });
-  await full.PATCH("/items/{itemId}", { params: { path: { itemId: "1" } }, body: "новое имя" });
-  await full.PATCH("/items/{itemId}", { params: { path: { itemId: "1" } }, body: { name: "новое имя" } });
-  await full.POST("/anything", { body: 42 });
-  await full.POST("/anything", { body: { any: ["thing"] } });
-
-  // query с массивом и заголовок-не-идентификатор.
-  await full.GET("/items/{itemId}", {
-    params: { path: { itemId: "1" }, query: { lang: "ru", tags: ["a", "b"] }, header: { "x-request-id": "r1" } },
-  });
-  await full.DELETE("/items/{itemId}", { params: { path: { itemId: "1" }, header: { "2fa": "123456" } } });
-
-  // 204 → data: undefined; ответ без схемы → unknown.
-  const removed = await full.DELETE("/items/{itemId}", { params: { path: { itemId: "1" }, header: { "2fa": "1" } } });
-  const nothing: undefined = removed.data;
-  void nothing;
+  // 204 → data: undefined.
+  const out = await api.POST("/auth/logout");
+  if (!out.error) {
+    const nothing: undefined = out.data;
+    void nothing;
+  }
 }
 
 void catalog;

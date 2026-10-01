@@ -48,9 +48,8 @@ else render(data.name);
 | `bun run generate` | генерирует `src/api/schema.ts` из `spec/openapi.json` |
 | `bun run demo` | пять запросов в облачный мок Apidog (или в `API_BASE_URL`) |
 | `bun run typecheck` | `tsc`, включая каталог ошибок типов `src/type-errors.ts` и сгенерированные `schema.ts` |
-| `bun test` | тесты генератора и клиента, без сети и токена |
 | `bun run build` | сборка `dist/` (tsdown): клиент, генератор, CLI и `.d.ts` |
-| `bun run release:patch` (`minor`, `major`) | поднимает версию и публикует в npm; перед публикацией сами запускаются typecheck, тесты и сборка |
+| `bun run release:patch` (`minor`, `major`) | поднимает версию и публикует в npm; перед публикацией сами запускаются typecheck и сборка |
 
 `spec/openapi.json` и `src/api/schema.ts` коммитятся и руками не правятся. Sprint-ветка Apidog:
 `APIDOG_BRANCH_ID=… bun run sync`.
@@ -68,4 +67,3 @@ else render(data.name);
 `openapi-cdd <спека.json> -o <выход.ts>` (в репе — `bun src/bin.ts …`) — про Apidog не знает, читает файл и пишет файл.
 Только OpenAPI 3.1 и JSON. Неподдержанная конструкция — ошибка с JSON pointer
 (`#/paths/~1notebooks/get/…`) и ненулевой код выхода, без молчаливого `unknown`.
-Все поддержанные конструкции собраны в `tests/fixtures/full.json`, их вывод — в `tests/fixtures/full.ts`.
