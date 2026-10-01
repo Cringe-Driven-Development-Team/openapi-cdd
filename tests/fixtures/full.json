@@ -1,0 +1,189 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Синтетическая спека: все поддержанные конструкции", "version": "1.0.0" },
+  "paths": {
+    "/items/{itemId}": {
+      "parameters": [
+        { "name": "itemId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+        { "name": "lang", "in": "query", "schema": { "type": "string" } },
+        { "name": "x-request-id", "in": "header", "description": "Сквозной ID запроса", "schema": { "type": "string" } }
+      ],
+      "get": {
+        "operationId": "getItem",
+        "summary": "Элемент",
+        "parameters": [
+          { "name": "lang", "in": "query", "required": true, "schema": { "enum": ["ru", "en"] } },
+          { "name": "tags", "in": "query", "schema": { "type": "array", "items": { "type": "string" } } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1 } },
+          { "name": "session", "in": "cookie", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Элемент",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Item" } } }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "operationId": "replaceItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "oneOf": [{ "$ref": "#/components/schemas/Item" }, { "type": "null" }] }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Заменён" },
+          "default": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "operationId": "patchItem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "object", "properties": { "name": { "type": "string" } }, "required": ["name"] }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Изменён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "ok": { "const": true }, "item": { "$ref": "#/components/schemas/Item" } },
+                  "required": ["ok"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteItem",
+        "parameters": [
+          { "name": "2fa", "in": "header", "required": true, "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/Force" }
+        ],
+        "responses": { "204": { "description": "Удалён", "content": {} } }
+      }
+    },
+    "/anything": {
+      "post": {
+        "operationId": "postAnything",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": {} } } },
+        "responses": {
+          "200": { "description": "Что угодно", "content": { "application/json": {} } },
+          "2XX": { "description": "Прочий успех" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "Force": { "name": "force", "in": "query", "schema": { "type": "boolean" } }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Не найдено",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Problem" } } }
+      }
+    },
+    "schemas": {
+      "Item": {
+        "type": "object",
+        "description": "Элемент: \"кавычки\", закрытие комментария */ и\nвторая строка",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "ID */ внутри" },
+          "kind": { "const": "item" },
+          "status": { "enum": ["new", "it's \"quoted\"", "line\nbreak", 0, -1, 1.5, true, null] },
+          "count": { "type": "integer" },
+          "ratio": { "type": "number" },
+          "active": { "type": "boolean" },
+          "note": { "type": ["string", "null"] },
+          "matrix": { "type": "array", "items": { "type": "array", "items": { "type": "number" } } },
+          "values": { "type": "array", "items": { "oneOf": [{ "type": "string" }, { "type": "number" }] } },
+          "maybeList": { "type": ["array", "null"], "items": { "type": "string" } },
+          "meta": { "type": "object" },
+          "empty": { "type": "object", "properties": {}, "additionalProperties": false },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "free": { "type": "object", "additionalProperties": true },
+          "mixed": {
+            "type": "object",
+            "properties": { "name": { "type": "string" }, "size": { "type": "integer" } },
+            "required": ["name"],
+            "additionalProperties": { "type": "boolean" }
+          },
+          "nested": {
+            "type": "object",
+            "properties": {
+              "deep": {
+                "type": "object",
+                "description": "Вложенный объект",
+                "properties": { "leaf": { "type": "string" } }
+              }
+            }
+          },
+          "Set-Cookie": { "type": "string" },
+          "x-request-id": { "type": "string" },
+          "2fa": { "type": "string" },
+          "parent": { "$ref": "#/components/schemas/Item" },
+          "anything": {}
+        },
+        "required": ["id", "kind", "status"]
+      },
+      "Tree": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "string" },
+          "children": { "type": "array", "items": { "$ref": "#/components/schemas/Tree" } }
+        },
+        "required": ["value"]
+      },
+      "Cat": {
+        "type": "object",
+        "properties": { "type": { "const": "cat" }, "lives": { "type": "integer" } },
+        "required": ["type"]
+      },
+      "Dog": {
+        "type": "object",
+        "properties": { "type": { "const": "dog" }, "breed": { "type": "string" } },
+        "required": ["type"]
+      },
+      "Pet": {
+        "oneOf": [{ "$ref": "#/components/schemas/Cat" }, { "$ref": "#/components/schemas/Dog" }],
+        "discriminator": { "propertyName": "type" }
+      },
+      "NamedPet": {
+        "type": "object",
+        "anyOf": [{ "$ref": "#/components/schemas/Cat" }, { "$ref": "#/components/schemas/Dog" }],
+        "properties": { "name": { "type": "string" } },
+        "required": ["name"]
+      },
+      "Problem": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Tree" },
+          { "type": "object", "properties": { "code": { "type": "integer" } }, "required": ["code"] }
+        ]
+      },
+      "Tagged": {
+        "type": "object",
+        "allOf": [{ "$ref": "#/components/schemas/Tree" }],
+        "oneOf": [{ "$ref": "#/components/schemas/Cat" }, { "$ref": "#/components/schemas/Dog" }]
+      },
+      "Pets": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } },
+      "weird-name": { "type": "string" },
+      "UsesWeird": { "$ref": "#/components/schemas/weird-name" }
+    }
+  }
+}

@@ -1,6 +1,12 @@
-import { createApi, MOCK_BASE_URL } from "./api/client";
+import createClient, { authMiddleware } from "./index";
+import type { paths } from "./api/schema";
 
-const api = createApi();
+const MOCK_BASE_URL = "https://mock.apidog.com/m1/1382426-1388508-default";
+// Пустой API_BASE_URL (как в .env из .env.example) — облачный мок Apidog.
+const baseUrl = process.env.API_BASE_URL || MOCK_BASE_URL;
+
+const api = createClient<paths>({ baseUrl, credentials: "include" });
+api.use(authMiddleware());
 
 function show(step: number, method: string, path: string, response: Response, data: unknown, error: unknown) {
   console.log(`\n${step}. ${method} ${path} -> ${response.status}`);
@@ -8,7 +14,7 @@ function show(step: number, method: string, path: string, response: Response, da
   else console.log("data:", JSON.stringify(data, null, 2));
 }
 
-console.log(`Base URL: ${process.env.API_BASE_URL || MOCK_BASE_URL}`);
+console.log(`Base URL: ${baseUrl}`);
 
 const login = await api.POST("/auth/login", { body: { login: "denis", password: "password123" } });
 show(1, "POST", "/auth/login", login.response, login.data, login.error);

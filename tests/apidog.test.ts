@@ -15,7 +15,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 describe("exportSpec", () => {
   test("POST на export-openapi с токеном, версией API и телом для main", async () => {
     const s = stub(json({ openapi: "3.1.0" }));
-    await exportSpec({ token: "t", format: "JSON", fetch: s.fetch });
+    await exportSpec({ token: "t", fetch: s.fetch });
     expect(s.calls).toHaveLength(1);
     const { url, init } = s.calls[0]!;
     expect(url).toBe(EXPORT_URL);
@@ -36,35 +36,35 @@ describe("exportSpec", () => {
 
   test("branchId sprint-ветки уходит в тело", async () => {
     const s = stub(json({ openapi: "3.1.0" }));
-    await exportSpec({ token: "t", format: "JSON", branchId: 1389936, fetch: s.fetch });
+    await exportSpec({ token: "t", branchId: 1389936, fetch: s.fetch });
     expect(JSON.parse(String(s.calls[0]!.init.body)).branchId).toBe(1389936);
   });
 
-  test("YAML отдаётся как есть", async () => {
-    const yaml = "openapi: 3.1.0\ninfo:\n  title: x\n";
-    const s = stub(new Response(yaml));
-    expect(await exportSpec({ token: "t", format: "YAML", fetch: s.fetch })).toBe(yaml);
+  test("спека отдаётся как есть", async () => {
+    const text = JSON.stringify({ openapi: "3.1.0", paths: {} }, null, 2);
+    const s = stub(new Response(text));
+    expect(await exportSpec({ token: "t", fetch: s.fetch })).toBe(text);
   });
 
   test("401 и 403 — ошибка про APIDOG_TOKEN", async () => {
     for (const status of [401, 403]) {
       const s = stub(new Response("no", { status }));
-      await expect(exportSpec({ token: "t", format: "JSON", fetch: s.fetch })).rejects.toThrow(/APIDOG_TOKEN/);
+      await expect(exportSpec({ token: "t", fetch: s.fetch })).rejects.toThrow(/APIDOG_TOKEN/);
     }
   });
 
   test("другой не-200 — код и начало тела в ошибке", async () => {
     const s = stub(new Response("boom", { status: 500 }));
-    const result = exportSpec({ token: "t", format: "JSON", fetch: s.fetch });
+    const result = exportSpec({ token: "t", fetch: s.fetch });
     await expect(result).rejects.toThrow(/500/);
     await expect(result).rejects.toThrow(/boom/);
   });
 
   test("ответ не OpenAPI — ошибка", async () => {
-    const notJson = stub(json({ error: 1 }));
-    await expect(exportSpec({ token: "t", format: "JSON", fetch: notJson.fetch })).rejects.toThrow(/не OpenAPI/);
-    const notYaml = stub(new Response("<html>"));
-    await expect(exportSpec({ token: "t", format: "YAML", fetch: notYaml.fetch })).rejects.toThrow(/не OpenAPI/);
+    const noVersion = stub(json({ error: 1 }));
+    await expect(exportSpec({ token: "t", fetch: noVersion.fetch })).rejects.toThrow(/не OpenAPI/);
+    const notObject = stub(new Response("<html>"));
+    await expect(exportSpec({ token: "t", fetch: notObject.fetch })).rejects.toThrow(/не OpenAPI/);
   });
 });
 

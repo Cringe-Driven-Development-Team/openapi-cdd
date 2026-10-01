@@ -1,12 +1,11 @@
-// Выгружает спецификацию OpenAPI из Apidog в spec/openapi.json и spec/openapi.yaml.
+// Выгружает спецификацию OpenAPI из Apidog в spec/openapi.json.
 // Токен берётся из APIDOG_TOKEN, sprint-ветка — из APIDOG_BRANCH_ID (пусто — main).
 // Bun сам читает .env, поэтому export в оболочке не нужен.
 
 export const EXPORT_URL = "https://api.apidog.com/v1/projects/1382426/export-openapi";
+export const SPEC_PATH = "spec/openapi.json";
 const API_VERSION = "2024-03-28";
 const MAX_ERROR_BODY = 512;
-
-export type ExportFormat = "JSON" | "YAML";
 
 export function requireToken(raw: string | undefined): string {
   if (!raw) {
@@ -27,8 +26,7 @@ export function parseBranchId(raw: string | undefined): number | undefined {
   return id;
 }
 
-function isOpenApi(text: string, format: ExportFormat): boolean {
-  if (format === "YAML") return text.startsWith("openapi:");
+function isOpenApi(text: string): boolean {
   try {
     const parsed: unknown = JSON.parse(text);
     return typeof parsed === "object" && parsed !== null && "openapi" in parsed;
@@ -39,16 +37,15 @@ function isOpenApi(text: string, format: ExportFormat): boolean {
 
 export async function exportSpec(options: {
   token: string;
-  format: ExportFormat;
   branchId?: number;
   fetch?: typeof fetch;
 }): Promise<string> {
-  const { token, format, branchId, fetch: doFetch = fetch } = options;
+  const { token, branchId, fetch: doFetch = fetch } = options;
   const body = {
     scope: { type: "ALL" },
     options: { includeApidogExtensionProperties: false, addFoldersToTags: false },
     oasVersion: "3.1",
-    exportFormat: format,
+    exportFormat: "JSON",
     ...(branchId === undefined ? {} : { branchId }),
   };
 
@@ -70,7 +67,7 @@ export async function exportSpec(options: {
   if (response.status !== 200) {
     throw new Error(`Apidog ответил ${response.status}: ${head}`);
   }
-  if (!isOpenApi(text, format)) {
+  if (!isOpenApi(text)) {
     throw new Error(`Apidog вернул не OpenAPI-спецификацию: ${head}`);
   }
   return text;
@@ -80,12 +77,10 @@ if (import.meta.main) {
   try {
     const token = requireToken(process.env.APIDOG_TOKEN);
     const branchId = parseBranchId(process.env.APIDOG_BRANCH_ID);
-    const json = await exportSpec({ token, format: "JSON", branchId });
-    const yaml = await exportSpec({ token, format: "YAML", branchId });
-    await Bun.write("spec/openapi.json", json);
-    await Bun.write("spec/openapi.yaml", yaml);
+    const json = await exportSpec({ token, branchId });
+    await Bun.write(SPEC_PATH, json);
     const branch = branchId === undefined ? "main" : `sprint-ветка ${branchId}`;
-    console.error(`apidog: выгружена ветка ${branch} → spec/openapi.json, spec/openapi.yaml`);
+    console.error(`apidog: выгружена ветка ${branch} → ${SPEC_PATH}`);
   } catch (error) {
     console.error("apidog:", error instanceof Error ? error.message : String(error));
     process.exit(1);
