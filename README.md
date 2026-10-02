@@ -12,7 +12,7 @@ Apidog ──bun run apidog──▶ spec/openapi.json ──bun run generate─
 ## Установка
 
 ```sh
-bun add @maninthecoat/openapi   # или npm install @maninthecoat/openapi
+bun add @iredtea/openapi   # или npm install @iredtea/openapi
 ```
 
 ```sh
@@ -20,7 +20,7 @@ bunx openapi-cdd ./openapi.json -o ./src/api/schema.ts
 ```
 
 ```ts
-import createClient, { authMiddleware } from "@maninthecoat/openapi";
+import createClient, { authMiddleware } from "@iredtea/openapi";
 import type { paths } from "./api/schema";
 
 const api = createClient<paths>({ baseUrl: "/api/v1", credentials: "include" });
@@ -33,8 +33,8 @@ else render(data.name);
 
 | Что | Откуда |
 | --- | --- |
-| `createClient` (он же экспорт по умолчанию), `authMiddleware`, типы `Client`, `Middleware`, … | `@maninthecoat/openapi` |
-| `generate(spec): string`, `GenerateError` | `@maninthecoat/openapi/generator` |
+| `createClient` (он же экспорт по умолчанию), `authMiddleware`, типы `Client`, `Middleware`, … | `@iredtea/openapi` |
+| `generate(spec): string`, `GenerateError` | `@iredtea/openapi/generator` |
 | CLI `openapi-cdd <спека.json> -o <выход.ts>` | `bin` пакета |
 
 Пакет — ESM, работает в браузере, bun и node ≥ 20. В node и bun `baseUrl` должен быть абсолютным.
