@@ -51,6 +51,8 @@ else render(data.name);
 | `bun run build` | сборка `dist/` (tsdown): клиент, генератор, CLI и `.d.ts` |
 | `bun run release:patch` (`minor`, `major`) | поднимает версию и публикует в npm; перед публикацией сами запускаются typecheck и сборка |
 
+Инструкции: [как обновлять сгенерированный код](docs/updating-schema.md), [как публиковать пакет](docs/publishing.md).
+
 `spec/openapi.json` и `src/api/schema.ts` коммитятся и руками не правятся. Sprint-ветка Apidog:
 `APIDOG_BRANCH_ID=… bun run sync`.
 
