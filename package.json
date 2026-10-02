@@ -1,5 +1,5 @@
 {
-  "name": "@maninthecoat/openapi",
+  "name": "@iredtea/openapi",
   "version": "0.1.0",
   "description": "Генератор типов из OpenAPI 3.1 и типизированный fetch-клиент без рантайм-зависимостей",
   "license": "MIT",
