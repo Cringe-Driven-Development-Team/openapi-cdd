@@ -2,7 +2,6 @@ import { createClient } from "./client";
 
 export default createClient;
 export { createClient };
-export { authMiddleware } from "./auth";
 export type {
   Client,
   ClientMethod,
