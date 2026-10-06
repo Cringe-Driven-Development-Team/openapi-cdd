@@ -20,11 +20,10 @@ bunx openapi-cdd ./openapi.json -o ./src/api/schema.ts
 ```
 
 ```ts
-import createClient, { authMiddleware } from "@iredtea/openapi";
+import createClient from "@iredtea/openapi";
 import type { paths } from "./api/schema";
 
 const api = createClient<paths>({ baseUrl: "/api/v1", credentials: "include" });
-api.use(authMiddleware()); // Bearer из заголовка ответа, после 401 — refresh и повтор
 
 const { data, error, response } = await api.GET("/notebooks/{id}", { params: { path: { id } } });
 if (error) show(error.code);
@@ -33,7 +32,7 @@ else render(data.name);
 
 | Что | Откуда |
 | --- | --- |
-| `createClient` (он же экспорт по умолчанию), `authMiddleware`, типы `Client`, `Middleware`, … | `@iredtea/openapi` |
+| `createClient` (он же экспорт по умолчанию), типы `Client`, `Middleware`, … | `@iredtea/openapi` |
 | `generate(spec): string`, `GenerateError` | `@iredtea/openapi/generator` |
 | CLI `openapi-cdd <спека.json> -o <выход.ts>` | `bin` пакета |
 
@@ -63,6 +62,50 @@ else render(data.name);
   второго аргумента, неверный тип параметра, обращение к `data` без проверки `error`. Весь каталог — `src/type-errors.ts`.
 - При `2xx` есть `data`, иначе `error`; `204` и пустое тело дают `undefined`. Сырой `response` есть всегда.
 - В рантайме по спеке ничего не проверяется.
+
+## Middleware
+
+`api.use(...)` подключает перехватчики запросов и ответов. Авторизации в пакете нет: правила у каждого
+бэкенда свои, поэтому она пишется в проекте как middleware.
+
+| Хук | Когда вызывается | Что может |
+| --- | --- | --- |
+| `onRequest({ request, schemaPath, params, options })` | перед отправкой, в порядке подключения | поменять заголовки `request` или вернуть новый `Request` |
+| `onResponse({ request, response, schemaPath, params, options })` | после ответа, в обратном порядке | вернуть другой `Response` взамен полученного |
+
+- `schemaPath` — путь как в спеке, с плейсхолдерами: `/notebooks/{id}`.
+- `options.fetch(request)` отправляет запрос в обход middleware. Так из `onResponse` повторяют запрос:
+  результат возвращается вместо исходного ответа.
+- Тело `Request` читается один раз, поэтому копию для повтора (`request.clone()`) нужно снять в `onRequest`.
+
+Пример авторизации — это пример, а не часть пакета. Сессия в cookie, после `401` клиент обновляет её
+и повторяет запрос:
+
+```ts
+import type { Middleware } from "@iredtea/openapi";
+
+function authMiddleware(): Middleware {
+  const retries = new WeakMap<Request, Request>();
+
+  return {
+    onRequest({ request }) {
+      retries.set(request, request.clone());
+    },
+    async onResponse({ request, response, schemaPath, options }) {
+      const retry = retries.get(request);
+      retries.delete(request);
+      if (response.status !== 401 || schemaPath.startsWith("/auth/") || !retry) return response;
+
+      const refreshed = await options.fetch(
+        new Request(`${options.baseUrl}/auth/refresh`, { method: "POST", credentials: "include" }),
+      );
+      return refreshed.ok ? options.fetch(retry) : response;
+    },
+  };
+}
+
+api.use(authMiddleware());
+```
 
 ## Генератор
 
