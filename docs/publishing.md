@@ -1,17 +1,20 @@
 # Как публиковать пакет
 
-Пакет — `@maninthecoat/openapi` в npm. В tarball попадает только `dist/`, `package.json` и `README.md`
+Пакет — `@iredtea/openapi` в npm. В tarball попадает только `dist/`, `package.json` и `README.md`
 (поле `files`). `dist/` в git не хранится и собирается при публикации.
 
 ## Один раз: доступ
 
-1. Нужны права на публикацию в скоуп `@maninthecoat` (их выдаёт владелец скоупа).
-2. Войти в npm:
+Скоуп `@iredtea` — личный скоуп npm-аккаунта `iredtea`, публикует только этот аккаунт.
+
+1. Войти в npm под `iredtea`:
 
    ```sh
    bunx npm login
-   bunx npm whoami   # должен показать твой логин
+   bunx npm whoami   # должно быть iredtea
    ```
+
+2. Если на аккаунте включена 2FA, `bun publish` спросит одноразовый код (или передать `--otp <код>`).
 
 ## Перед публикацией
 
@@ -45,6 +48,9 @@ bun run release:minor   # 0.1.0 → 0.2.0: новые возможности, с
 bun run release:major   # 0.1.0 → 1.0.0: несовместимые изменения
 ```
 
+Пока версия `0.x`, несовместимые изменения выпускаются через `release:minor`: caret-диапазон
+`^0.1.0` у потребителей не подтягивает `0.2.0` сам.
+
 Скрипт поднимает версию в `package.json` и запускает `bun publish`. Git-тег и коммит он не создаёт,
 поэтому после публикации:
 
@@ -68,13 +74,13 @@ git push origin HEAD --tags
 ## Проверка после публикации
 
 ```sh
-npm view @maninthecoat/openapi version
+npm view @iredtea/openapi version
 ```
 
 И в чистом каталоге:
 
 ```sh
-bun add @maninthecoat/openapi
+bun add @iredtea/openapi
 bunx openapi-cdd ./openapi.json -o ./schema.ts
 ```
 
@@ -83,7 +89,7 @@ bunx openapi-cdd ./openapi.json -o ./schema.ts
 | Проблема | Что делать |
 | --- | --- |
 | `missing authentication` | `bunx npm login` |
-| `403 Forbidden` | нет прав на скоуп `@maninthecoat` — попросить владельца добавить в мейнтейнеры |
+| `403 Forbidden` / `404 Not Found` на `PUT` | вошли не под `iredtea` — проверить `bunx npm whoami`, перелогиниться |
 | `cannot publish over the previously published versions` | такая версия уже есть в npm; поднять версию (`release:*`) |
 | `release:*` поднял версию, а публикация упала | версия в `package.json` уже новая: исправить причину и запустить просто `bun publish` |
-| Опубликована сломанная версия | выпустить исправление через `release:patch`. Версию можно убрать (`npm unpublish @maninthecoat/openapi@x.y.z`) только в первые 72 часа, и тот же номер повторно занять нельзя |
+| Опубликована сломанная версия | выпустить исправление через `release:patch`. Версию можно убрать (`npm unpublish @iredtea/openapi@x.y.z`) только в первые 72 часа, и тот же номер повторно занять нельзя |

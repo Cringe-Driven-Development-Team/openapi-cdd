@@ -1,4 +1,4 @@
-import createClient, { authMiddleware } from "./index";
+import createClient from "./index";
 import type { paths } from "./api/schema";
 
 const MOCK_BASE_URL = "https://mock.apidog.com/m1/1382426-1388508-default";
@@ -6,7 +6,6 @@ const MOCK_BASE_URL = "https://mock.apidog.com/m1/1382426-1388508-default";
 const baseUrl = process.env.API_BASE_URL || MOCK_BASE_URL;
 
 const api = createClient<paths>({ baseUrl, credentials: "include" });
-api.use(authMiddleware());
 
 function show(step: number, method: string, path: string, response: Response, data: unknown, error: unknown) {
   console.log(`\n${step}. ${method} ${path} -> ${response.status}`);
