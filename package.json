@@ -1,6 +1,6 @@
 {
   "name": "@iredtea/openapi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Генератор типов из OpenAPI 3.1 и типизированный fetch-клиент без рантайм-зависимостей",
   "license": "MIT",
   "repository": "https://github.com/Cringe-Driven-Development-Team/openapi-cdd",
